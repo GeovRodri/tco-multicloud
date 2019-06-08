@@ -1,7 +1,6 @@
 from django.conf.urls import url
-from website.views import index
-from django.urls import path
+from website.views import Pesquisa
 
 urlpatterns = [
-    path('', index, name='index'),
+    url('', Pesquisa.as_view())
 ]
