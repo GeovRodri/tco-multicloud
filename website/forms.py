@@ -39,3 +39,8 @@ class PesquisaForm(forms.Form):
         label='HD (opcional)',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HD'}),
         required=False)
+
+    limit = forms.IntegerField(
+        label='Limite de Itens',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        initial=10)

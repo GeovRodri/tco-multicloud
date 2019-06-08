@@ -22,13 +22,13 @@
                 <tbody>
                     {% for machine in machines %}
                         <tr>
-                            <td>{{ machine.cloud }}</td>
-                            <td>{{ machine.type }}</td>
-                            <td>{{ machine.cpu }}</td>
-                            <td>{{ machine.ram }}</td>
-                            <td>{{ machine.hd }}</td>
-                            <td>{{ machine.pricing.region }}</td>
-                            <td>{{ machine.pricing.price }}</td>
+                            <td>{{ machine.cloud|default_if_none:"-" }}</td>
+                            <td>{{ machine.type|default_if_none:"-" }}</td>
+                            <td>{{ machine.cpu|default_if_none:"-" }}</td>
+                            <td>{{ machine.ram|default_if_none:"-" }}</td>
+                            <td>{{ machine.hd|default_if_none:"-" }}</td>
+                            <td>{{ machine.pricing.region|default_if_none:"-" }}</td>
+                            <td>{{ machine.pricing.price|default_if_none:"-" }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
