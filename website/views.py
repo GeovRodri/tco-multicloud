@@ -39,5 +39,4 @@ class Pesquisa(FormView):
             )
 
         request = requests.post('http://157.230.128.104:8080/', json=request_body)
-        print(request.json())
         return render(self.request, 'listagem.html', {'machines': request.json()})
