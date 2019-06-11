@@ -25,17 +25,17 @@ class Pesquisa(FormView):
 
         if data['cpu'] is not None and data['cpu'] != '':
             request_body['filters'].append(
-                {"field": "cpu", "comparator": data['cpu_filter'], "value": data['cpu']}
+                {"field": "cpu", "comparator": data['cpu_filter'], "value": int(data['cpu'])}
             )
 
         if data['hd'] is not None and data['hd'] != '':
             request_body['filters'].append(
-                {"field": "hd", "comparator": data['hd_filter'], "value": data['hd']}
+                {"field": "hd", "comparator": data['hd_filter'], "value": int(data['hd'])}
             )
 
         if data['ram'] is not None and data['ram'] != '':
             request_body['filters'].append(
-                {"field": "ram", "comparator": data['ram_filter'], "value": data['ram']}
+                {"field": "ram", "comparator": data['ram_filter'], "value": int(data['ram'])}
             )
 
         request = requests.post('http://157.230.128.104:8080/', json=request_body)

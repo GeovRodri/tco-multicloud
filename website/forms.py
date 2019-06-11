@@ -17,7 +17,7 @@ class PesquisaForm(forms.Form):
 
     cpu = forms.IntegerField(
         label='CPU (opcional)',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CPU'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CPU', 'type': 'number'}),
         required=False)
 
     ram_filter = forms.ChoiceField(
@@ -27,7 +27,7 @@ class PesquisaForm(forms.Form):
 
     ram = forms.IntegerField(
         label='RAM (opcional)',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'RAM'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'RAM', 'type': 'number'}),
         required=False)
 
     hd_filter = forms.ChoiceField(
@@ -37,7 +37,7 @@ class PesquisaForm(forms.Form):
 
     hd = forms.IntegerField(
         label='HD (opcional)',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HD'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HD', 'type': 'number'}),
         required=False)
 
     limit = forms.IntegerField(
