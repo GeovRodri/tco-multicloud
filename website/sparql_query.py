@@ -1,13 +1,10 @@
 from owlready2 import *
-import json
-import pprint
 
 class SparqlQuery:
     vms = ["alibaba", "aws", "azure", "google"]
 
     def __init__(self):
-
-        onto_path.append("/home/gilberto//PycharmProjects/tco-multicloud/Ontology")
+        onto_path.append("./Ontology/")
 
         default_world.get_ontology("CloudIaaS3.owl").load()
 
@@ -45,6 +42,3 @@ class SparqlQuery:
         response['specific_fields'] = iaasProvider
         return response
 
-runQuery = SparqlQuery()
-response = runQuery.search()
-pprint.pprint(response)  # just to show the output
