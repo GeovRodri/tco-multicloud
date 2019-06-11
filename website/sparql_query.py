@@ -1,10 +1,11 @@
 from owlready2 import *
+import pprint
 
 class SparqlQuery:
     vms = ["alibaba", "aws", "azure", "google"]
 
     def __init__(self):
-        onto_path.append("./Ontology/")
+        onto_path.append("./website/ontologia")
 
         default_world.get_ontology("CloudIaaS3.owl").load()
 
@@ -15,8 +16,6 @@ class SparqlQuery:
 
         response = {}
         iaasProvider = {}
-
-        response['generic_fields'] = ['cpu', 'hd', 'pricing', 'ram']
 
         for provider in SparqlQuery.vms:
 
@@ -39,6 +38,9 @@ class SparqlQuery:
 
                 iaasProvider[provider].append(o)
 
-        response['specific_fields'] = iaasProvider
+        response['select'] = iaasProvider
         return response
 
+runQuery = SparqlQuery()
+response = runQuery.search()
+pprint.pprint(response)  # just to show the output
