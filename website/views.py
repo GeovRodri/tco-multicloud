@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.views.generic import FormView
 from website.forms import PesquisaForm
 from website.sparql_query import SparqlQuery
+from website.tco.tco_calculator import CalculadoraTco
 
 
 class Pesquisa(FormView):
@@ -40,18 +41,7 @@ class Pesquisa(FormView):
         machines = request.json()
 
         ''' Adicionar o item que corresponde a maquina fisica '''
-        machines.append(
-            {
-                'type': 'Maquina Física',
-                'cloud': 'Maquina Física',
-                'cpu': 3,
-                'hd': '2 TB',
-                'ram': '2 GB',
-                'pricing': {
-                    'region': 'Goiania',
-                    'price': 0.002669
-                }
-            }
-        )
+        calculadora_tco = CalculadoraTco()
+        machines.append(calculadora_tco.calcular(data['ram'], data['hd'], data['cpu']))
 
         return render(self.request, 'listagem.html', {'machines': machines})
