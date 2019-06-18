@@ -7,23 +7,39 @@ Created on Wed May 15 15:05:58 2019
 Ferramenta para Cálculo de TCO da nuvem
 """
 import configparser
+import os
 
 
 class CalculadoraTco:
 
     config = None
+    base_dir = None
 
     def __init__(self):
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        config_file = os.path.join(self.base_dir, 'dados.ini')
         self.config = configparser.ConfigParser()
 
         # leitura dos dados
         self.config.sections()
-        self.config.read('dados.ini')
+        self.config.read(config_file)
         self.config.sections()
 
     def calcular(self, memoria=64, HD=1000, nucleos=4):
+        if memoria is None or memoria == '':
+            memoria = 64
+
+        if HD is None or HD == '':
+            HD = 1000
+
+        if nucleos is None or nucleos == '':
+            nucleos = 4
+
         # Conversão dos dados em variaveis do tipo Float
         valor = self.config['DADOS']
+        memoria = int(memoria)
+        HD = int(HD)
+        nucleos = int(nucleos)
 
         n_servidor = float(valor['nServidor'])
         c_servidor = float(valor['cServidor'])
@@ -63,8 +79,8 @@ class CalculadoraTco:
         consumo_hora = float(valor['consumoHora'])
 
         # escolha da maquina e melhor ajuste de valores para calculo
-        if memoria <= 64 and HD <= 1000 and nucleos<=4 :
-            self.config.read('PowerEdgeR240.ini')
+        if memoria <= 64 and HD <= 1000 and nucleos <= 4:
+            self.config.read(os.path.join(self.base_dir, 'PowerEdgeR240.ini'))
             valor1 = self.config['PowerEdge R240']
 
             n_servidor = memoria / 64 # densidade de VM
@@ -78,7 +94,7 @@ class CalculadoraTco:
             peso_rack = float(valor1['pesoRack'])
 
         elif memoria <= 512 and HD <= 4000 and nucleos <= 22:
-            self.config.read('PowerEdgeR440.ini')
+            self.config.read(os.path.join(self.base_dir, 'PowerEdgeR440.ini'))
             valor1 = self.config['PowerEdge R440']
 
             n_servidor = memoria/512 # densidade de VM
