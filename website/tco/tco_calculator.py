@@ -121,6 +121,7 @@ class CalculadoraTco:
         custoInstalacao = self.custo_instalacao(n_rack, p_intalacao_rack, amortizacao)
         custoImobiliario = self.custo_imobiliario(n_servidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao)
         custoTotal = self.custo_total(custoServidor, custoNetwork, custoSoftware, custoPower, custoManutencao, custoResfriamento, custoInstalacao, custoImobiliario)
+        valor_por_hora = custoTotal / 26280
 
         return {
             'type': 'Maquina Física',
@@ -130,7 +131,7 @@ class CalculadoraTco:
             'ram': memoria,
             'pricing': {
                 'region': 'Goiania',
-                'price': custoTotal
+                'price': valor_por_hora
             }
         }
 
