@@ -25,9 +25,9 @@ class CalculadoraTco:
         self.config.read(config_file)
         self.config.sections()
 
-    def calcular(self, memoria=64, HD=1000, nucleos=4):
+    def calcular(self, memoria=8, HD=1000, nucleos=4):
         if memoria is None or memoria == '':
-            memoria = 64
+            memoria = 8
 
         if HD is None or HD == '':
             HD = 1000
@@ -41,8 +41,7 @@ class CalculadoraTco:
         HD = int(HD)
         nucleos = int(nucleos)
 
-        n_servidor = float(valor['nServidor'])
-        c_servidor = float(valor['cServidor'])
+        numero_servidor = float(valor['numeroServidor'])
         p_software_i = float(valor['pSoftwareI'])
         p_software_ii = float(valor['pSoftwareII'])
         p_software_iii = float(valor['pSoftwareIII'])
@@ -77,49 +76,52 @@ class CalculadoraTco:
         peso_rack = float(valor['pesoRack'])
         unidade_amortizacao = float(valor['unidadeAmortizacao'])
         consumo_hora = float(valor['consumoHora'])
+        
+        self.config.read(os.path.join(self.base_dir, 'PowerEdgeR840.ini'))
+        dadosMaquinaFisica = self.config['PowerEdge R840']
+        custoServidor = float(dadosMaquinaFisica['custoServidor'])
+        nucleosServidor = float(dadosMaquinaFisica['nucleosServidor'])
+        memoriaServidor = float(dadosMaquinaFisica['memoriaServidor'])
+        HDServidor = float(dadosMaquinaFisica['HDServidor'])
+        n_ni_cservidor = float(dadosMaquinaFisica['nNICservidor'])
+        potencia_unico_servidor = float(dadosMaquinaFisica['potenciaUnicoServidor'])
+        carga_resfriamento = float(dadosMaquinaFisica['cargaResfriamento'])
+        pes_quadrado_rack = float(dadosMaquinaFisica['pesQuadradoRack'])
+        porcentagem_espaco_ocupado_rack = float(dadosMaquinaFisica['porcentagemEspacoOcupadoRack'])
+        peso_servidor = float(dadosMaquinaFisica['pesoServidor'])
+        peso_rack = float(dadosMaquinaFisica['pesoRack'])
 
-        # escolha da maquina e melhor ajuste de valores para calculo
-        if memoria <= 64 and HD <= 1000 and nucleos <= 4:
-            self.config.read(os.path.join(self.base_dir, 'PowerEdgeR240.ini'))
-            valor1 = self.config['PowerEdge R240']
-
-            n_servidor = memoria / 64 # densidade de VM
-            c_servidor = float(valor1['cServidor'])
-            n_ni_cservidor = float(valor1['nNICservidor'])
-            potencia_unico_servidor = float(valor1['potenciaUnicoServidor'])
-            carga_resfriamento = float(valor1['cargaResfriamento'])
-            pes_quadrado_rack = float(valor1['pesQuadradoRack'])
-            porcentagem_espaco_ocupado_rack = float(valor1['porcentagemEspacoOcupadoRack'])
-            peso_servidor = float(valor1['pesoServidor'])
-            peso_rack = float(valor1['pesoRack'])
-
-        elif memoria <= 512 and HD <= 4000 and nucleos <= 22:
-            self.config.read(os.path.join(self.base_dir, 'PowerEdgeR440.ini'))
-            valor1 = self.config['PowerEdge R440']
-
-            n_servidor = memoria/512 # densidade de VM
-            c_servidor = float(valor1['cServidor'])
-            n_ni_cservidor = float(valor1['nNICservidor'])
-            potencia_unico_servidor = float(valor1['potenciaUnicoServidor'])
-            carga_resfriamento = float(valor1['cargaResfriamento'])
-            pes_quadrado_rack = float(valor1['pesQuadradoRack'])
-            porcentagem_espaco_ocupado_rack = float(valor1['porcentagemEspacoOcupadoRack'])
-            peso_servidor = float(valor1['pesoServidor'])
-            peso_rack = float(valor1['pesoRack'])
-
-        else :
+        # checagem se a máquina física utilizada é suficiente
+        if memoria <= memoriaServidor and HD <= HDServidor and nucleos <= nucleosServidor:
+            # recalcula a quantidade de servidores tendo como base a densidade da VM
+            densidade_cpu = nucleos / nucleosServidor
+            densidade_memoria = memoria / memoriaServidor
+            densidade_hd = HD / HDServidor
+            numero_servidor = numero_servidor * ((densidade_cpu + densidade_memoria + densidade_hd) / 3.0)
+        else:
             print('Erro de configuração')
+            return {
+                'type': 'Maquina Física',
+                'cloud': 'Maquina Física',
+                'cpu': nucleos,
+                'hd': HD,
+                'ram': memoria,
+                'pricing': {
+                    'region': 'Goiania',
+                    'price': 'ERROR'
+                }
+            }
 
         # chamando funções
         amortizacao = self.custo_amortizacao(unidade_amortizacao, consumo_hora)
-        custoServidor = self.custo_servidor(n_servidor, c_servidor, amortizacao)
-        custoNetwork = self.custo_network(n_servidor, n_ni_cservidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao)
+        custoServidor = self.custo_servidor(numero_servidor, custoServidor, amortizacao)
+        custoNetwork = self.custo_network(numero_servidor, n_ni_cservidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao)
         custoSoftware = self.custo_software(p_software_i, p_software_ii, p_software_iii, ass_tipo_i, ass_tipo_ii, ass_tipo_iii, n_software_i, n_software_ii, n_software_iii, amortizacao)
-        custoManutencao = self.custo_manutencao(n_servidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario)
-        custoPower = self.custo_power(n_servidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network)
+        custoManutencao = self.custo_manutencao(numero_servidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario)
+        custoPower = self.custo_power(numero_servidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network)
         custoResfriamento = self.custo_resfriamento(custoPower, carga_resfriamento, k_redundancia_ar, k_ineficiencia)
         custoInstalacao = self.custo_instalacao(n_rack, p_intalacao_rack, amortizacao)
-        custoImobiliario = self.custo_imobiliario(n_servidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao)
+        custoImobiliario = self.custo_imobiliario(numero_servidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao)
         custoTotal = self.custo_total(custoServidor, custoNetwork, custoSoftware, custoPower, custoManutencao, custoResfriamento, custoInstalacao, custoImobiliario)
         valor_por_hora = custoTotal / 26280
 
@@ -138,16 +140,16 @@ class CalculadoraTco:
     # funçoes para cálculo de cada custo
     def custo_amortizacao(self, unidade_amortizacao, consumo_hora):
         n = 1.0 + 0.05
-        custo = (n*consumo_hora) / unidade_amortizacao
+        custo = (n * consumo_hora) / unidade_amortizacao
         return custo
 
-    def custo_servidor(self, n_servidor, c_servidor, amortizacao):
-        custo = n_servidor * c_servidor * amortizacao
+    def custo_servidor(self, numeroServidor, custoServidor, amortizacao):
+        custo = numeroServidor * custoServidor * amortizacao
         return custo
 
-    def custo_network(self, n_servidor, n_nic_servidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao):
-        n = n_nic_servidor * nportas_nic * (n_servidor/nporta_switch_rede)
-        custo = n * p_switch * amortizacao
+    def custo_network(self, numeroServidor, nNICServidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao):
+        n = nNICServidor * nportas_nic * nporta_switch_rede
+        custo = n * p_switch * amortizacao * numeroServidor
         return custo
 
     def custo_software(self, p_software1, p_software2, p_software3, ass_tipo1, ass_tipo2, ass_tipo3, n_software1, n_software2, n_software3, amortizacao):
@@ -155,12 +157,12 @@ class CalculadoraTco:
                  p_software3 * ass_tipo3 * n_software3) * amortizacao
         return custo
 
-    def custo_manutencao(self, n_servidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario):
-        custo = n_administrador_suporte * (tm_sistema_unidade_utilizado * n_servidor + tg_sistema_inativo) * n_classificacao_salario
+    def custo_manutencao(self, numeroServidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario):
+        custo = n_administrador_suporte * (tm_sistema_unidade_utilizado * numeroServidor + tg_sistema_inativo) * n_classificacao_salario
         return custo
 
-    def custo_power(self, n_servidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network):
-        custo = (n_servidor * (potencia_unico_servidor / 1000) * c_power_regiao * pue_medio * consumo_hora) / (1 - porcentagem_power_resfriamento + porcentagem_power_network)
+    def custo_power(self, numeroServidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network):
+        custo = (numeroServidor * (potencia_unico_servidor / 1000) * c_power_regiao * pue_medio * consumo_hora) / (1 - porcentagem_power_resfriamento + porcentagem_power_network)
         return custo
 
     def custo_resfriamento(self, custo_power, carga_resfriamento, k_redundancia_ar, k_ineficiencia):
@@ -171,9 +173,9 @@ class CalculadoraTco:
         custo = n_rack * p_intalacao_rack * amortizacao
         return custo
 
-    def custo_imobiliario(self, n_servidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao):
+    def custo_imobiliario(self, numeroServidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao):
         a = (pes_quadrado_rack * n_rack) / porcentagem_espaco_ocupado_rack
-        b = (n_servidor * peso_servidor + n_rack * peso_rack) / a
+        b = (numeroServidor * peso_servidor + n_rack * peso_rack) / a
         custo = c_quadrado_construir_cloud * a * amortizacao * b
         return custo
 
