@@ -41,7 +41,7 @@ class CalculadoraTco:
         HD = int(HD)
         nucleos = int(nucleos)
 
-        numero_servidor = float(valor['numeroServidor'])
+        numeroServidor = float(valor['numeroServidor'])
         p_software_i = float(valor['pSoftwareI'])
         p_software_ii = float(valor['pSoftwareII'])
         p_software_iii = float(valor['pSoftwareIII'])
@@ -53,7 +53,7 @@ class CalculadoraTco:
         n_software_iii = float(valor['nSoftwareIII'])
         n_ni_cservidor = float(valor['nNICservidor'])
         nportas_nic = float(valor['nportasNIC'])
-        p_switch = float(valor['pSwitch'])
+        custoSwitch = float(valor['custoSwitch'])
         nporta_switch_rede = float(valor['nportaSwitchRede'])
         n_administrador_suporte = float(valor['nAdministradorSuporte'])
         tm_sistema_unidade_utilizado = float(valor['tmSistemaUnidadeUtilizado'])
@@ -94,11 +94,11 @@ class CalculadoraTco:
         # checagem se a máquina física utilizada é suficiente
         if memoria <= memoriaServidor and HD <= HDServidor and nucleos <= nucleosServidor:
             # recalcula a quantidade de servidores tendo como base a densidade da VM
-            densidade_cpu = nucleos / nucleosServidor
-            densidade_memoria = memoria / memoriaServidor
-            densidade_hd = HD / HDServidor
-            numero_servidor = numero_servidor * ((densidade_cpu + densidade_memoria + densidade_hd) / 3.0)
-        else:
+            densidadeCPU = nucleos / nucleosServidor
+            densidadeMemoria = memoria / memoriaServidor
+            densidadeHD = HD / HDServidor
+            numeroServidor = numeroServidor * ((densidadeCPU + densidadeMemoria + densidadeHD) / 3.0)
+        else :
             print('Erro de configuração')
             return {
                 'type': 'Maquina Física',
@@ -114,14 +114,14 @@ class CalculadoraTco:
 
         # chamando funções
         amortizacao = self.custo_amortizacao(unidade_amortizacao, consumo_hora)
-        custoServidor = self.custo_servidor(numero_servidor, custoServidor, amortizacao)
-        custoNetwork = self.custo_network(numero_servidor, n_ni_cservidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao)
+        custoServidor = self.custo_servidor(numeroServidor, custoServidor, amortizacao)
+        custoNetwork = self.custo_network(numeroServidor, n_ni_cservidor, nportas_nic, custoSwitch, nporta_switch_rede, amortizacao)
         custoSoftware = self.custo_software(p_software_i, p_software_ii, p_software_iii, ass_tipo_i, ass_tipo_ii, ass_tipo_iii, n_software_i, n_software_ii, n_software_iii, amortizacao)
-        custoManutencao = self.custo_manutencao(numero_servidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario)
-        custoPower = self.custo_power(numero_servidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network)
+        custoManutencao = self.custo_manutencao(numeroServidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario)
+        custoPower = self.custo_power(numeroServidor, c_power_regiao, potencia_unico_servidor, pue_medio, consumo_hora, porcentagem_power_resfriamento, porcentagem_power_network)
         custoResfriamento = self.custo_resfriamento(custoPower, carga_resfriamento, k_redundancia_ar, k_ineficiencia)
         custoInstalacao = self.custo_instalacao(n_rack, p_intalacao_rack, amortizacao)
-        custoImobiliario = self.custo_imobiliario(numero_servidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao)
+        custoImobiliario = self.custo_imobiliario(numeroServidor, n_rack, c_quadrado_construir_cloud, pes_quadrado_rack, porcentagem_espaco_ocupado_rack, peso_servidor, peso_rack, amortizacao)
         custoTotal = self.custo_total(custoServidor, custoNetwork, custoSoftware, custoPower, custoManutencao, custoResfriamento, custoInstalacao, custoImobiliario)
         valor_por_hora = custoTotal / 26280
 
@@ -147,14 +147,13 @@ class CalculadoraTco:
         custo = numeroServidor * custoServidor * amortizacao
         return custo
 
-    def custo_network(self, numeroServidor, nNICServidor, nportas_nic, p_switch, nporta_switch_rede, amortizacao):
+    def custo_network(self, numeroServidor, nNICServidor, nportas_nic, custoSwitch, nporta_switch_rede, amortizacao):
         n = nNICServidor * nportas_nic * nporta_switch_rede
-        custo = n * p_switch * amortizacao * numeroServidor
+        custo = n * custoSwitch * amortizacao * numeroServidor
         return custo
 
     def custo_software(self, p_software1, p_software2, p_software3, ass_tipo1, ass_tipo2, ass_tipo3, n_software1, n_software2, n_software3, amortizacao):
-        custo = (p_software1 * ass_tipo1 * n_software1 + p_software2 * ass_tipo2 * n_software2 +
-                 p_software3 * ass_tipo3 * n_software3) * amortizacao
+        custo = (p_software1 * ass_tipo1 * n_software1 + p_software2 * ass_tipo2 * n_software2 + p_software3 * ass_tipo3 * n_software3) * amortizacao
         return custo
 
     def custo_manutencao(self, numeroServidor, n_administrador_suporte, tm_sistema_unidade_utilizado, tg_sistema_inativo, n_classificacao_salario):
